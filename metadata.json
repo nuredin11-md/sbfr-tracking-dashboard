@@ -1,0 +1,7 @@
+{
+  "name": "SBFR Action Plan Dashboard",
+  "description": "Standards-Based Facility Review - Real-time Compliance Tracking & Monitoring Framework",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

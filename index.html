@@ -295,7 +295,7 @@
             border: 1px solid rgba(56, 189, 248, 0.2);
         }
 
-        /* Action Plan Styling (Slight restoration of original visual metrics) */
+        /* Action Plan Styling */
         .action-status-badge {
             display: inline-flex;
             align-items: center;
@@ -482,6 +482,94 @@
             font-size: 0.95em;
         }
 
+        /* XML Parser Panel Styling */
+        .parser-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 992px) {
+            .parser-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .parser-textarea {
+            font-family: monospace;
+            font-size: 0.85em;
+            background: #0f172a;
+            color: #38bdf8;
+            border-color: #334155;
+            resize: vertical;
+        }
+
+        .gap-indicator-card {
+            background: rgba(244, 63, 94, 0.1);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .gap-title {
+            font-weight: 600;
+            color: #f43f5e;
+            font-size: 0.95em;
+        }
+
+        .gap-tag {
+            background: rgba(244, 63, 94, 0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 700;
+            color: #f43f5e;
+            text-transform: uppercase;
+        }
+
+        .score-meter-wrap {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .score-meter-label {
+            width: 150px;
+            font-weight: 600;
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+
+        .score-meter-bg {
+            flex-grow: 1;
+            height: 12px;
+            background: #1e293b;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+
+        .score-meter-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38bdf8, #10b981);
+            border-radius: 6px;
+            transition: width 0.5s ease;
+        }
+
+        .score-meter-text {
+            width: 40px;
+            font-weight: 700;
+            color: #10b981;
+            text-align: right;
+            font-size: 0.9em;
+        }
+
         /* Modal styling for viewing entire daily log */
         .modal-overlay {
             position: fixed;
@@ -651,6 +739,7 @@
                 <button class="nav-tab active" onclick="switchTab('analytics')">📈 Operations Charts</button>
                 <button class="nav-tab" onclick="switchTab('logs')">📝 Daily Reports Logs</button>
                 <button class="nav-tab" onclick="switchTab('actions')">🛠️ SBFR Action Matrix</button>
+                <button class="nav-tab" onclick="switchTab('parser')">📋 SBFR XML Assessment Parser</button>
             </div>
         </div>
 
@@ -822,6 +911,89 @@
             </div>
         </div>
 
+        <!-- VIEW D: XML ASSESSMENT PARSER -->
+        <div id="panel-parser" class="workspace-panel">
+            <div class="parser-grid">
+                <!-- XML Paste Column -->
+                <div class="panel-card">
+                    <div class="panel-card-header">
+                        <h2>📋 XML Form Importer</h2>
+                        <button class="btn btn-outline" style="font-size:0.85em; padding:6px 12px;" onclick="loadDemoXml()">📝 Load Demo XML Audit</button>
+                    </div>
+                    <div class="form-group" style="height: calc(100% - 80px); display:flex; flex-direction:column;">
+                        <label for="xmlInputText">Paste ODK / XForms XML Survey Report Below</label>
+                        <textarea id="xmlInputText" class="form-control parser-textarea" style="flex-grow:1; min-height:360px;" placeholder="Paste <?xml version='1.0' ?> ... metadata here"></textarea>
+                        <button class="btn btn-submit" style="margin-top:16px;" onclick="parseXmlData()">⚙️ Process Audit XML</button>
+                    </div>
+                </div>
+
+                <!-- Analysis Scorecard Column -->
+                <div class="panel-card" id="parserResultsCard" style="display:none;">
+                    <div class="panel-card-header">
+                        <h2>📊 Assessment Scorecard</h2>
+                        <span id="hospitalBadge" class="td-badge" style="font-size:1em; font-weight:700;">Chefa Robit Hospital</span>
+                    </div>
+                    <div style="background:#0f172a; padding:18px; border-radius:10px; border:1px solid #334155; margin-bottom:20px;">
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:0.9em;">
+                            <div><strong style="color:#38bdf8;">Facility ID:</strong> <span id="resHospitalId">kemissie_gh</span></div>
+                            <div><strong style="color:#38bdf8;">Facility Level:</strong> <span id="resHospitalLevel">primary</span></div>
+                            <div><strong style="color:#38bdf8;">Zone:</strong> <span id="resHospitalZone">Oromia Special</span></div>
+                            <div><strong style="color:#38bdf8;">Quarter / EFY:</strong> <span id="resHospitalQuarter">Q1 / 2019</span></div>
+                        </div>
+                    </div>
+
+                    <h3 style="color:#38bdf8; font-size:1.1em; margin-bottom:12px; font-weight:700;">Compliance Progress by Domain:</h3>
+                    
+                    <div class="score-meter-wrap">
+                        <div class="score-meter-label">Governance & Leadership</div>
+                        <div class="score-meter-bg">
+                            <div class="score-meter-fill" id="meterGovernance" style="width: 0%;"></div>
+                        </div>
+                        <div class="score-meter-text" id="textGovernance">0%</div>
+                    </div>
+                    <div class="score-meter-wrap">
+                        <div class="score-meter-label">ER Preparedness</div>
+                        <div class="score-meter-bg">
+                            <div class="score-meter-fill" id="meterEr" style="width: 0%;"></div>
+                        </div>
+                        <div class="score-meter-text" id="textEr">0%</div>
+                    </div>
+                    <div class="score-meter-wrap">
+                        <div class="score-meter-label">Staff Comfort & Welfare</div>
+                        <div class="score-meter-bg">
+                            <div class="score-meter-fill" id="meterWelfare" style="width: 0%;"></div>
+                        </div>
+                        <div class="score-meter-text" id="textWelfare">0%</div>
+                    </div>
+                    <div class="score-meter-wrap">
+                        <div class="score-meter-label">Overall SBFR Compliance</div>
+                        <div class="score-meter-bg">
+                            <div class="score-meter-fill" id="meterOverall" style="width: 0%;"></div>
+                        </div>
+                        <div class="score-meter-text" id="textOverall">0%</div>
+                    </div>
+
+                    <div style="border-top:1px solid #334155; padding-top:16px; margin-top:20px;">
+                        <h3 style="color:#f43f5e; font-size:1.1em; margin-bottom:12px; font-weight:700; display:flex; align-items:center; gap:8px;">⚠️ Identified Gaps: <span id="gapsCountBadge" style="background:#f43f5e; color:#0f172a; padding:2px 8px; border-radius:50px; font-size:0.75em;">0 Gaps</span></h3>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+                            <span style="font-size:0.85em; color:#94a3b8;">Create actions for items marked "NO" in assessment</span>
+                            <button class="btn btn-outline" style="font-size:0.75em; padding:4px 8px; color:#38bdf8; border-color:rgba(56, 189, 248, 0.2);" onclick="autoGenerateAllGaps()">⚡ Auto-Generate All Gaps</button>
+                        </div>
+                        <div id="parsedGapsContainer" style="max-height:240px; overflow-y:auto; padding-right:6px;">
+                            <!-- XML Gaps dynamically loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty state placeholder card -->
+                <div class="panel-card" id="parserEmptyCard" style="display:flex; flex-direction:column; justify-content:center; align-items:center; color:#64748b; min-height:400px; text-align:center;">
+                    <span style="font-size:4em; margin-bottom:16px;">📊</span>
+                    <h3>Process Audit XML to See Results</h3>
+                    <p style="font-size:0.9em; margin-top:6px; max-width:320px;">Use the load button to populate the ODK assessment file or paste your own.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <div class="app-footer">
             <p>© 2026 Standards-Based Facility Review System | Integrated 21-Day Trend Monitoring Framework</p>
@@ -910,6 +1082,7 @@
         <span>✅ Report saved successfully!</span>
     </div>
 
+    <!-- Business Logic JavaScript -->
     <script>
         // Parsed 21-day clinical and facility operational records
         const initial21DaysData = [
@@ -1103,9 +1276,102 @@
             }
         ];
 
+        // Demo XML string corresponding exactly to the user input
+        const demoXmlReport = `<?xml version="1.0" ?>
+<aVCXMQ6ShZ3Cofv2ZjWrmn xmlns:jr="http://openrosa.org/javarosa" xmlns:orx="http://openrosa.org/xforms" id="aVCXMQ6ShZ3Cofv2ZjWrmn" version="8 (2026-09-29 09:38:59)">
+          <formhub>
+            <uuid>ea5a646e9caa4a108c968d55b84d9b0a</uuid>
+          </formhub>
+          <start>2026-10-07T19:16:09.448+03:00</start>
+          <end>2026-10-07T19:35:56.619+03:00</end>
+          <group_of0vk01>
+            <group_bl9go82>
+              <Hospital_Name>kemissie_gh</Hospital_Name>
+              <Hospital_Name_001>Chefa robit hospital</Hospital_Name_001>
+              <Level>primary</Level>
+              <Zone>oromospecial_zone</Zone>
+              <EFY>2019</EFY>
+              <Quarter>quarter_1</Quarter>
+              <Month/>
+              <Week/>
+            </group_bl9go82>
+          </group_of0vk01>
+          <group_za8mx55>
+            <Daily_CED_CCD_SBFR_task_force_>yes</Daily_CED_CCD_SBFR_task_force_>
+            <How_many_days_in_a_week>1</How_many_days_in_a_week>
+            <Daily_CED_CCD_SBFR_t_provement_activities>yes</Daily_CED_CCD_SBFR_t_provement_activities>
+            <Weekly_Clinical_Forum_led_by_CED_and_CCO>yes</Weekly_Clinical_Forum_led_by_CED_and_CCO>
+            <Weekly_Clinical_Foru_provement_activities>yes</Weekly_Clinical_Foru_provement_activities>
+            <Planned_SMT_supervision>never</Planned_SMT_supervision>
+            <sudden_SMT_Supervision>never</sudden_SMT_Supervision>
+            <Monthly_Review_meeting_with_RHB>n0</Monthly_Review_meeting_with_RHB>
+            <Major_supervision_fi_atform_like_telegram>yes</Major_supervision_fi_atform_like_telegram>
+            <Dashboard_based_weekly_perform>no</Dashboard_based_weekly_perform>
+            <Dashboard_based_week_Which_Service_area/>
+            <group_eq9tz28>
+              <Standardize_emergenc_and_proper_handover>yes</Standardize_emergenc_and_proper_handover>
+              <ER_triage_and_Centra_run_by_GP_and_or_Rs>no</ER_triage_and_Centra_run_by_GP_and_or_Rs>
+              <One_stop_shop_evalua_arted_at_ER_and_OPDs>yes</One_stop_shop_evalua_arted_at_ER_and_OPDs>
+              <Scope_based_disposal_arted_at_ER_and_OPDs>yes</Scope_based_disposal_arted_at_ER_and_OPDs>
+              <Conduct_twice_daily_s_for_all_kept_cases>no</Conduct_twice_daily_s_for_all_kept_cases>
+              <Always_Conduct_daily_or_all_kept_patients>no</Always_Conduct_daily_or_all_kept_patients>
+              <Regular_ER_readiness_audit_done>yes</Regular_ER_readiness_audit_done>
+              <Regular_ER_readiness_ked_with_improvement>yes</Regular_ER_readiness_ked_with_improvement>
+              <Imaging_service_efficiency_mon>no</Imaging_service_efficiency_mon>
+              <Did_all_Clinical_Audit_finding>yes</Did_all_Clinical_Audit_finding>
+              <Daily_emergency_Corridor_audit_done>yes</Daily_emergency_Corridor_audit_done>
+              <Refferal_In_with_Communcation>no</Refferal_In_with_Communcation>
+              <Did_all_Referral_out_with_Comm>no</Did_all_Referral_out_with_Comm>
+              <group_ld0uc28>
+                <OR_table_productivity_3_table_day_>0.2</OR_table_productivity_3_table_day_>
+                <Average_incision_Start_time>02:30:00.000+03:00</Average_incision_Start_time>
+                <Average_last_case_ending_time>19:30:00.000+03:00</Average_last_case_ending_time>
+                <How_many_Backlogs_do_until_reporting_time>0</How_many_Backlogs_do_until_reporting_time>
+                <Digital_backlog_management_system>no</Digital_backlog_management_system>
+                <Half_schedule_to_imp_itals_with_a_backlog>no</Half_schedule_to_imp_itals_with_a_backlog>
+                <Total_cancellations_for_schedu>0</Total_cancellations_for_schedu>
+                <Number_of_unacceptab_the_reporting_period>0</Number_of_unacceptab_the_reporting_period>
+                <group_tm2rz56>
+                  <Avail_Gender_based_and_washing_facility>yes</Avail_Gender_based_and_washing_facility>
+                  <Equip_duty_rooms_wit_or_internet_access>no</Equip_duty_rooms_wit_or_internet_access>
+                  <Prepare_a_cupboard_gowns_and_uniforms>yes</Prepare_a_cupboard_gowns_and_uniforms>
+                  <Ensure_24_hrs_acces_r_portable_purifier>yes</Ensure_24_hrs_acces_r_portable_purifier>
+                  <Avail_Central_coffee_and_tea_service>yes</Avail_Central_coffee_and_tea_service>
+                  <Conduct_regular_duty_linen_change_service>yes</Conduct_regular_duty_linen_change_service>
+                  <group_oa5lk19>
+                    <Establish_an_audit_a_eagents_and_supplies>yes</Establish_an_audit_a_eagents_and_supplies>
+                    <Establish_a_system_of_auditing>no</Establish_a_system_of_auditing>
+                    <Number_of_Unacceptab_the_reporting_period_001/>
+                    <Did_any_intervention_ble_imaging_requests>no</Did_any_intervention_ble_imaging_requests>
+                    <Emergency_sample_col_n_the_emergency_area>no</Emergency_sample_col_n_the_emergency_area>
+                    <OPD_sample_collectio_service_in_OPD_areas>no</OPD_sample_collectio_service_in_OPD_areas>
+                    <Inpatient_sample_col_ult_delivery_service>yes</Inpatient_sample_col_ult_delivery_service>
+                    <Establish_equipment_notification_system>yes</Establish_equipment_notification_system>
+                    <Imaging_service_efficiency_mon_001>no</Imaging_service_efficiency_mon_001>
+                    <Did_imaging_efficie_ked_with_improvement/>
+                    <Productivity_per_mac_per_day_is_monitored/>
+                    <Productivity_per_per_er_hour_is_monitored>yes</Productivity_per_per_er_hour_is_monitored>
+                    <Did_the_facility_monitor_imaging_TAT/>
+                    <Conduct_regular_audi_nd_exempted_services>yes</Conduct_regular_audi_nd_exempted_services>
+                    <was_there_any_audit_finding>yes</was_there_any_audit_finding>
+                    <Any_intervention_don_or_the_audit_finding>yes</Any_intervention_don_or_the_audit_finding>
+                    <Top_20_drugs_utilization_monit>yes</Top_20_drugs_utilization_monit>
+                    <Prioritized_drugs_an_ked_with_improvement>yes</Prioritized_drugs_an_ked_with_improvement>
+                  </group_oa5lk19>
+                </group_tm2rz56>
+              </group_ld0uc28>
+            </group_eq9tz28>
+          </group_za8mx55>
+          <__version__>vidPnBZKnhviCnQw8a7bUZ</__version__>
+          <meta>
+            <instanceID>uuid:93add90f-01fa-4adc-9f4f-dd1f8c032a6c</instanceID>
+          </meta>
+        </aVCXMQ6ShZ3Cofv2ZjWrmn>`;
+
         // Application State
         let logsData = [];
         let actionsData = [];
+        let parsedGaps = []; // Currently parsed XML compliance gaps
         let activeTab = 'analytics';
 
         // Chart instances
@@ -1613,6 +1879,230 @@
                     }
                 }
             });
+        }
+
+        // XML Assessment Parser Logic
+        function loadDemoXml() {
+            document.getElementById('xmlInputText').value = demoXmlReport;
+            showToast("📝 Loaded assessment demo XML!");
+        }
+
+        function parseXmlData() {
+            const xmlText = document.getElementById('xmlInputText').value.trim();
+            if (!xmlText) {
+                alert("Please paste some XML data first.");
+                return;
+            }
+
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+                // Check for parser errors
+                const parseError = xmlDoc.getElementsByTagName("parsererror");
+                if (parseError.length > 0) {
+                    throw new Error(parseError[0].textContent);
+                }
+
+                // General profile
+                const hospitalNameElement = xmlDoc.getElementsByTagName("Hospital_Name_001")[0];
+                const hospitalIdElement = xmlDoc.getElementsByTagName("Hospital_Name")[0];
+                const levelElement = xmlDoc.getElementsByTagName("Level")[0];
+                const zoneElement = xmlDoc.getElementsByTagName("Zone")[0];
+                const efyElement = xmlDoc.getElementsByTagName("EFY")[0];
+                const quarterElement = xmlDoc.getElementsByTagName("Quarter")[0];
+
+                const hospitalName = hospitalNameElement ? hospitalNameElement.textContent : "Unknown Hospital";
+                const hospitalId = hospitalIdElement ? hospitalIdElement.textContent : "N/A";
+                const level = levelElement ? levelElement.textContent : "primary";
+                const zone = zoneElement ? zoneElement.textContent.replace('_', ' ') : "N/A";
+                const efy = efyElement ? efyElement.textContent : "2019";
+                const quarter = quarterElement ? quarterElement.textContent.replace('_', ' ') : "N/A";
+
+                // Update UI Profile
+                document.getElementById('hospitalBadge').textContent = hospitalName;
+                document.getElementById('resHospitalId').textContent = hospitalId;
+                document.getElementById('resHospitalLevel').textContent = level;
+                document.getElementById('resHospitalZone').textContent = zone;
+                document.getElementById('resHospitalQuarter').textContent = `${quarter.toUpperCase()} / ${efy}`;
+
+                // Calculate metrics & extract compliance gaps
+                parsedGaps = [];
+
+                // 1. Governance & Leadership Domain
+                const govChecks = [
+                    { key: "Daily_CED_CCD_SBFR_task_force_", label: "Daily CEO/CED/CCD SBFR Task Force active", dept: "Hospital Management" },
+                    { key: "Daily_CED_CCD_SBFR_t_provement_activities", label: "CED/CCD SBFR tracking activities documented", dept: "Hospital Management" },
+                    { key: "Weekly_Clinical_Forum_led_by_CED_and_CCO", label: "Weekly Clinical Forum led by CED and CCO conducted", dept: "Hospital Management" },
+                    { key: "Weekly_Clinical_Foru_provement_activities", label: "Clinical Forum improvement activities tracked", dept: "Hospital Management" },
+                    { key: "Major_supervision_fi_atform_like_telegram", label: "Major supervision findings shared on active Telegram group", dept: "Hospital Management" },
+                    { key: "Dashboard_based_weekly_perform", label: "Dashboard-based weekly clinical performance review", dept: "Hospital Management" }
+                ];
+
+                let govYesCount = 0;
+                govChecks.forEach(check => {
+                    const el = xmlDoc.getElementsByTagName(check.key)[0];
+                    const val = el ? el.textContent.toLowerCase() : "no";
+                    if (val === "yes") {
+                        govYesCount++;
+                    } else {
+                        parsedGaps.push({ department: check.dept, issue: `${check.label} is currently missing or inactive`, corrective: `Formally initiate ${check.label.toLowerCase()} in accordance with SBFR frameworks.` });
+                    }
+                });
+                const govScore = Math.round((govYesCount / govChecks.length) * 100);
+
+                // 2. Emergency Readiness Domain
+                const erChecks = [
+                    { key: "Standardize_emergenc_and_proper_handover", label: "Standardized ER emergency handover protocols", dept: "Emergency Department" },
+                    { key: "ER_triage_and_Centra_run_by_GP_and_or_Rs", label: "ER Triage run continuously by GPs or Residents", dept: "Emergency Department" },
+                    { key: "One_stop_shop_evalua_arted_at_ER_and_OPDs", label: "One-stop-shop evaluation started at ER/OPD", dept: "Emergency Department" },
+                    { key: "Scope_based_disposal_arted_at_ER_and_OPDs", label: "Scope-based disposal initiated at ER/OPDs", dept: "Emergency Department" },
+                    { key: "Conduct_twice_daily_s_for_all_kept_cases", label: "Twice daily clinical audits conducted for all kept cases", dept: "Emergency Department" },
+                    { key: "Always_Conduct_daily_or_all_kept_patients", label: "Daily clinical audits conducted for all kept patients", dept: "Emergency Department" },
+                    { key: "Regular_ER_readiness_audit_done", label: "Regular ER readiness audits completed", dept: "Emergency Department" },
+                    { key: "Daily_emergency_Corridor_audit_done", label: "Daily ER emergency corridor audits done", dept: "Emergency Department" }
+                ];
+
+                let erYesCount = 0;
+                erChecks.forEach(check => {
+                    const el = xmlDoc.getElementsByTagName(check.key)[0];
+                    const val = el ? el.textContent.toLowerCase() : "no";
+                    if (val === "yes") {
+                        erYesCount++;
+                    } else {
+                        parsedGaps.push({ department: check.dept, issue: `${check.label} is currently unfulfilled`, corrective: `Establish protocols and conduct regular monitoring for ${check.label.toLowerCase()}.` });
+                    }
+                });
+                const erScore = Math.round((erYesCount / erChecks.length) * 100);
+
+                // 3. Staff Comfort & Welfare
+                const welfareChecks = [
+                    { key: "Avail_Gender_based_and_washing_facility", label: "Gender-based rest and washing facilities available for duty staff", dept: "Hospital Management" },
+                    { key: "Equip_duty_rooms_wit_or_internet_access", label: "Equip duty rooms with internet access", dept: "Hospital Management" },
+                    { key: "Prepare_a_cupboard_gowns_and_uniforms", label: "Provide cupboards for protective gowns and uniforms", dept: "Hospital Management" },
+                    { key: "Ensure_24_hrs_acces_r_portable_purifier", label: "24 hours continuous access to safe drinking water", dept: "Hospital Management" },
+                    { key: "Avail_Central_coffee_and_tea_service", label: "Centralized coffee and tea services for overnight personnel", dept: "Hospital Management" },
+                    { key: "Conduct_regular_duty_linen_change_service", label: "Regular duty room linen change service active", dept: "Hospital Management" }
+                ];
+
+                let welfareYesCount = 0;
+                welfareChecks.forEach(check => {
+                    const el = xmlDoc.getElementsByTagName(check.key)[0];
+                    const val = el ? el.textContent.toLowerCase() : "no";
+                    if (val === "yes") {
+                        welfareYesCount++;
+                    } else {
+                        parsedGaps.push({ department: check.dept, issue: `Staff Welfare: ${check.label} is missing`, corrective: `Implement infrastructure updates to provide ${check.label.toLowerCase()}.` });
+                    }
+                });
+                const welfareScore = Math.round((welfareYesCount / welfareChecks.length) * 100);
+
+                // 4. Overall SBFR compliance
+                const overallScore = Math.round((govScore + erScore + welfareScore) / 3);
+
+                // Update meters in UI
+                document.getElementById('meterGovernance').style.width = `${govScore}%`;
+                document.getElementById('textGovernance').textContent = `${govScore}%`;
+
+                document.getElementById('meterEr').style.width = `${erScore}%`;
+                document.getElementById('textEr').textContent = `${erScore}%`;
+
+                document.getElementById('meterWelfare').style.width = `${welfareScore}%`;
+                document.getElementById('textWelfare').textContent = `${welfareScore}%`;
+
+                document.getElementById('meterOverall').style.width = `${overallScore}%`;
+                document.getElementById('textOverall').textContent = `${overallScore}%`;
+
+                // Update UI results card
+                document.getElementById('parserEmptyCard').style.display = 'none';
+                document.getElementById('parserResultsCard').style.display = 'block';
+
+                // Fill parsed gaps lists
+                renderParsedGapsList();
+                showToast("📋 XML Audit processed successfully!");
+
+            } catch (err) {
+                alert(`Failed to parse XML schema: ${err.message}`);
+                console.error(err);
+            }
+        }
+
+        function renderParsedGapsList() {
+            const container = document.getElementById('parsedGapsContainer');
+            container.innerHTML = '';
+
+            document.getElementById('gapsCountBadge').textContent = `${parsedGaps.length} Gaps`;
+
+            if (parsedGaps.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#10b981; padding:20px; font-weight:700;">💯 Perfect Compliance! No gaps detected.</div>`;
+                return;
+            }
+
+            parsedGaps.forEach((gap, index) => {
+                container.innerHTML += `
+                    <div class="gap-indicator-card">
+                        <div>
+                            <span class="gap-tag">${gap.department}</span>
+                            <div class="gap-title" style="margin-top:4px;">${escapeHtml(gap.issue)}</div>
+                        </div>
+                        <button class="quick-action-btn" style="margin:0; flex-shrink:0;" onclick="injectGapIntoActions(${index})">➕ Matrix</button>
+                    </div>
+                `;
+            });
+        }
+
+        // Add single parsed gap to main Action matrix
+        function injectGapIntoActions(index) {
+            const gap = parsedGaps[index];
+            if (!gap) return;
+
+            const newAction = {
+                id: "act-" + Date.now(),
+                department: gap.department,
+                issue: gap.issue,
+                corrective: gap.corrective,
+                deadline: "24 Hours",
+                status: "Pending",
+                progress: 0,
+                official: "Clinical Director"
+            };
+
+            actionsData.push(newAction);
+            localStorage.setItem('sbfr_ops_actions', JSON.stringify(actionsData));
+            calculateTopStats();
+            renderActionsTable();
+            showToast("⚡ Gap added to Action Plan Matrix!");
+
+            // Remove it from the current display list so they don't double add
+            parsedGaps.splice(index, 1);
+            renderParsedGapsList();
+        }
+
+        // Auto generate all gaps into SBFR action plan
+        function autoGenerateAllGaps() {
+            if (parsedGaps.length === 0) return;
+
+            parsedGaps.forEach(gap => {
+                const newAction = {
+                    id: "act-" + Date.now() + Math.random().toString(36).substr(2, 5),
+                    department: gap.department,
+                    issue: gap.issue,
+                    corrective: gap.corrective,
+                    deadline: "48 Hours",
+                    status: "Pending",
+                    progress: 0,
+                    official: "Clinical Quality Lead"
+                };
+                actionsData.push(newAction);
+            });
+
+            localStorage.setItem('sbfr_ops_actions', JSON.stringify(actionsData));
+            calculateTopStats();
+            renderActionsTable();
+            showToast(`⚡ Generated ${parsedGaps.length} corrective actions successfully!`);
+
+            parsedGaps = [];
+            renderParsedGapsList();
         }
 
         // Utilities
